@@ -20,12 +20,10 @@ find_package(tesseract_common REQUIRED)
 find_package(tesseract_motion_planners REQUIRED)
 find_package(tesseract_process_planners REQUIRED)
 
-
 catkin_package(
   INCLUDE_DIRS
     include
     ${EIGEN3_INCLUDE_DIRS}
-#  LIBRARIES
   CATKIN_DEPENDS
     tesseract_msgs
     roscpp
@@ -35,14 +33,8 @@ catkin_package(
     std_msgs
   DEPENDS
     Boost
-    EIGEN3
-    tesseract_scene_graph
-    tesseract_geometry
-    tesseract_visualization
-    tesseract_collision
-    tesseract_common
-    tesseract_process_planners
-    tesseract_motion_planners
+  CFG_EXTRAS
+    ${PROJECT_NAME}-extras.cmake
 )
 
 add_library(${PROJECT_NAME} INTERFACE)
@@ -67,9 +59,7 @@ install(
 # Mark cpp header files for installation
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  FILES_MATCHING PATTERN "*.h"
-  PATTERN ".svn" EXCLUDE
- )
+)
 
 if(CATKIN_ENABLE_TESTING)
   find_package(GTest REQUIRED)

@@ -69,8 +69,8 @@ catkin_package(
     Boost
     OGRE
     QT
-    tesseract
-    tesseract_common
+  CFG_EXTRAS
+    ${PROJECT_NAME}-extras.cmake
 )
 
 include_directories(
@@ -289,8 +289,6 @@ install(TARGETS ${PROJECT_NAME}_render_tools ${PROJECT_NAME}_state_plugin_core $
 # Mark cpp header files for installation
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  FILES_MATCHING PATTERN "*.h"
-  PATTERN ".svn" EXCLUDE
 )
 
 # Mark plugin XML files for installation

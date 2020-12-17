@@ -37,10 +37,7 @@ catkin_package(
     tf2_eigen
     visualization_msgs
   DEPENDS
-    EIGEN3
-    tesseract
     orocos_kdl
-    tesseract_common
 )
 
 include_directories(
@@ -96,9 +93,7 @@ install(TARGETS ${PROJECT_NAME}_environment ${PROJECT_NAME}_contacts ${PROJECT_N
 # Mark cpp header files for installation
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  FILES_MATCHING PATTERN "*.h"
-  PATTERN ".svn" EXCLUDE
- )
+)
 
 install(DIRECTORY launch
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}

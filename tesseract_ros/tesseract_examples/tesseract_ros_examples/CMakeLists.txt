@@ -263,9 +263,7 @@ target_include_directories(${PROJECT_NAME}_scene_graph_example_node SYSTEM PRIVA
 # Mark cpp header files for installation
 install(DIRECTORY include/${PROJECT_NAME}
   DESTINATION include
-  FILES_MATCHING PATTERN "*.h"
-  PATTERN ".svn" EXCLUDE
- )
+)
 
 # Mark executables and/or libraries for installation
 install(

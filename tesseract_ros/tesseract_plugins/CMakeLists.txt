@@ -21,10 +21,8 @@ catkin_package(
     roscpp
     eigen_conversions
     pluginlib
-  DEPENDS
-    EIGEN3
-    tesseract_collision
-    tesseract_common
+  CFG_EXTRAS
+    ${PROJECT_NAME}-extras.cmake
 )
 
 add_library(tesseract_collision_bullet_plugin src/plugins/bullet_plugin.cpp)
