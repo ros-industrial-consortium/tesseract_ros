@@ -40,7 +40,8 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <trajopt_ifopt/constraints/cartesian_position_constraint.h>
 #include <trajopt_ifopt/constraints/joint_position_constraint.h>
 #include <trajopt_ifopt/constraints/joint_velocity_constraint.h>
-#include <trajopt_ifopt/constraints/collision_constraint.h>
+#include <trajopt_ifopt/constraints/discrete_collision_constraint.h>
+#include <trajopt_ifopt/constraints/continuous_collision_constraint.h>
 #include <trajopt_ifopt/constraints/inverse_kinematics_constraint.h>
 #include <trajopt_ifopt/variable_sets/joint_position_variable.h>
 #include <trajopt_ifopt/costs/squared_cost.h>
@@ -210,19 +211,19 @@ bool OnlinePlanningExample::setupProblem()
     nlp_.AddCostSet(vel_cost);
   }
   // Add a collision cost for all steps
+  double margin_coeff = .1;
+  double margin = 0.1;
+  auto collision_config = std::make_shared<trajopt::TrajOptCollisionConfig>(margin, margin_coeff);
+  collision_config->contact_request.type = tesseract_collision::ContactTestType::CLOSEST;
+  collision_config->type = CollisionEvaluatorType::DISCRETE;
+  collision_config->collision_margin_buffer = 0.10;
+  auto collision_cache = std::make_shared<trajopt::CollisionCache>(vars.size());
   for (std::size_t i = 0; i < static_cast<std::size_t>(steps_) - 1; i++)
   {
-    double margin_coeff = .1;
-    double margin = 0.1;
-    trajopt::TrajOptCollisionConfig collision_config(margin, margin_coeff);
-    collision_config.contact_request.type = tesseract_collision::ContactTestType::CLOSEST;
-    collision_config.type = CollisionEvaluatorType::DISCRETE;
-    collision_config.collision_margin_buffer = 0.10;
+    auto collision_evaluator = std::make_shared<trajopt::SingleTimestepCollisionEvaluator>(
+        collision_cache, manipulator_fk_, env_, manipulator_adjacency_map_, Eigen::Isometry3d::Identity(), collision_config, true);
 
-    auto collision_evaluator = std::make_shared<trajopt::DiscreteCollisionEvaluator>(
-        manipulator_fk_, env_, manipulator_adjacency_map_, Eigen::Isometry3d::Identity(), collision_config, true);
-
-    auto collision_constraint = std::make_shared<trajopt::CollisionConstraintIfopt>(collision_evaluator, vars[i]);
+    auto collision_constraint = std::make_shared<trajopt::DiscreteCollisionConstraintIfopt>(collision_evaluator, trajopt::DiscreteCombineCollisionData(trajopt::CombineCollisionDataMethod::WEIGHTED_AVERAGE), vars[i]);
     collision_constraint->LinkWithVariables(nlp_.GetOptVariables());
     auto collision_cost = std::make_shared<trajopt::SquaredCost>(collision_constraint);
     nlp_.AddCostSet(collision_constraint);
@@ -270,7 +271,7 @@ bool OnlinePlanningExample::onlinePlan()
       solver.qp_solver->updateBounds(solver.qp_problem->getBoundsLower(), solver.qp_problem->getBoundsUpper());
 
       // Step the optimization
-      solver.stepOptimization(nlp_);
+      solver.stepSQPSolver();
 
       // Update the results
       x = solver.getResults().new_var_vals;
