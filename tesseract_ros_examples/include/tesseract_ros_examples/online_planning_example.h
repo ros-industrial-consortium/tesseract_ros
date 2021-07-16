@@ -39,7 +39,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
 #include <std_srvs/SetBool.h>
-#include <ifopt/problem.h>
+#include <trajopt_sqp/qp_problem.h>
 
 #include <trajopt_ifopt/constraints/cartesian_position_constraint.h>
 #include <tesseract_rosutils/plotting.h>
@@ -115,7 +115,7 @@ private:
   std::vector<std::string> joint_names_;
   ros::Subscriber joint_state_subscriber_;
   ros::ServiceServer toggle_realtime_service_;
-  ifopt::Problem nlp_;
+  trajopt_sqp::QPProblem::Ptr nlp_;
 
   bool realtime_running_;
 

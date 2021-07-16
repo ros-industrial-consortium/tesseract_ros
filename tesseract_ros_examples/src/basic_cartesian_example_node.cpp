@@ -36,11 +36,15 @@ int main(int argc, char** argv)
 
   bool plotting = true;
   bool rviz = true;
+  bool ifopt = false;
+  bool debug = false;
 
   // Get ROS Parameters
   pnh.param("plotting", plotting, plotting);
   pnh.param("rviz", rviz, rviz);
+  pnh.param("ifopt", ifopt, ifopt);
+  pnh.param("debug", debug, debug);
 
-  BasicCartesianExample example(nh, plotting, rviz);
+  BasicCartesianExample example(nh, plotting, rviz, ifopt, debug);
   example.run();
 }
