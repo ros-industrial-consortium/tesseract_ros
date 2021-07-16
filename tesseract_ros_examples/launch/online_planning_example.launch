@@ -8,7 +8,8 @@
   <arg name="rviz" default="true"/>
   <arg name="testing" default="false"/>
   <arg name="steps" default="12"/>
-  <arg name="box_size" default="0.002"/>
+  <arg name="box_size" default="0.01"/>
+  <arg name="update_start_state" default="false"/>
 
   <!-- Load universal robot description format (URDF) -->
   <param name="$(arg robot_description)" command="$(find xacro)/xacro --inorder '$(find tesseract_ros_examples)/urdf/online_planning_example.xacro'" />
@@ -25,6 +26,7 @@
       <param name="rviz" type="bool" value="$(arg rviz)"/>
       <param name="steps" type="int" value="$(arg steps)"/>
       <param name="box_size" type="double" value="$(arg box_size)"/>
+      <param name="update_start_state" type="bool" value="$(arg update_start_state)"/>
     </node>
 
     <!-- Launch visualization -->

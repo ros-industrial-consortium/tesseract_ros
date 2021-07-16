@@ -6,6 +6,8 @@
   <arg name="trajopt_description" default="trajopt_description"/>
   <arg name="plotting" default="true"/>
   <arg name="rviz" default="true"/>
+  <arg name="ifopt" default="false"/>
+  <arg name="debug" default="false"/>
   <arg name="testing" default="false"/>
 
   <!-- Load universal robot description format (URDF) -->
@@ -18,9 +20,11 @@
     <!-- If needed, broadcast static tf for robot root -->
     <node pkg="tf" type="static_transform_publisher" name="virtual_joint_broadcaster_0" args="0 0 0 0 0 0 world base_link 100" />
 
-    <node pkg="tesseract_ros_examples" type="tesseract_ros_examples_basic_cartesian_example_node" name="tesseract_ros_examples_basic_cartesian_example_node">
+    <node pkg="tesseract_ros_examples" type="tesseract_ros_examples_basic_cartesian_example_node" name="tesseract_ros_examples_basic_cartesian_example_node" output="screen">
       <param name="plotting" type="bool" value="$(arg plotting)"/>
       <param name="rviz" type="bool" value="$(arg rviz)"/>
+      <param name="ifopt" type="bool" value="$(arg ifopt)"/>
+      <param name="debug" type="bool" value="$(arg debug)"/>
     </node>
 
     <!-- Launch visualization -->

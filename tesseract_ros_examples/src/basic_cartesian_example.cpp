@@ -47,6 +47,12 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_motion_planners/core/utils.h>
 #include <tesseract_visualization/markers/toolpath_marker.h>
 
+#include <tesseract_motion_planners/trajopt_ifopt/profile/trajopt_ifopt_default_composite_profile.h>
+#include <tesseract_motion_planners/trajopt/profile/trajopt_default_composite_profile.h>
+
+#include <tesseract_motion_planners/trajopt_ifopt/profile/trajopt_ifopt_default_plan_profile.h>
+#include <tesseract_motion_planners/trajopt/profile/trajopt_default_plan_profile.h>
+
 using namespace tesseract_environment;
 using namespace tesseract_scene_graph;
 using namespace tesseract_collision;
@@ -108,8 +114,12 @@ Command::Ptr BasicCartesianExample::addPointCloud()
   return std::make_shared<tesseract_environment::AddLinkCommand>(link_octomap, joint_octomap);
 }
 
-BasicCartesianExample::BasicCartesianExample(const ros::NodeHandle& nh, bool plotting, bool rviz)
-  : Example(plotting, rviz), nh_(nh)
+BasicCartesianExample::BasicCartesianExample(const ros::NodeHandle& nh,
+                                             bool plotting,
+                                             bool rviz,
+                                             bool ifopt,
+                                             bool debug)
+  : Example(plotting, rviz), nh_(nh), ifopt_(ifopt), debug_(debug)
 {
 }
 
@@ -174,6 +184,9 @@ bool BasicCartesianExample::run()
 
   env_->setState(joint_names, joint_pos);
 
+  if (debug_)
+    console_bridge::setLogLevel(console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_DEBUG);
+
   // Create Program
   CompositeInstruction program("cartesian_program", CompositeInstructionOrder::ORDERED, ManipulatorInfo("manipulator"));
 
@@ -213,13 +226,52 @@ bool BasicCartesianExample::run()
 
   // Create Process Planning Request
   ProcessPlanningRequest request;
-  request.name = tesseract_planning::process_planner_names::TRAJOPT_PLANNER_NAME;
+  if (ifopt_)
+  {
+    auto composite_profile = std::make_shared<tesseract_planning::TrajOptIfoptDefaultCompositeProfile>();
+    composite_profile->collision_cost_config->type = tesseract_collision::CollisionEvaluatorType::NONE;
+    composite_profile->collision_constraint_config->type = tesseract_collision::CollisionEvaluatorType::NONE;
+    composite_profile->smooth_velocities = true;
+    planning_server.getProfiles()->addProfile<tesseract_planning::TrajOptIfoptCompositeProfile>("cartesian_program",
+                                                                                                composite_profile);
+
+    auto plan_profile = std::make_shared<tesseract_planning::TrajOptIfoptDefaultPlanProfile>();
+    plan_profile->cartesian_coeff = Eigen::VectorXd::Ones(6);
+    plan_profile->joint_coeff = Eigen::VectorXd::Ones(7);
+    planning_server.getProfiles()->addProfile<tesseract_planning::TrajOptIfoptPlanProfile>("RASTER", plan_profile);
+    planning_server.getProfiles()->addProfile<tesseract_planning::TrajOptIfoptPlanProfile>("freespace_profile",
+                                                                                           plan_profile);
+
+    request.name = tesseract_planning::process_planner_names::TRAJOPT_IFOPT_PLANNER_NAME;
+  }
+  else
+  {
+    auto composite_profile = std::make_shared<tesseract_planning::TrajOptDefaultCompositeProfile>();
+    composite_profile->collision_cost_config.enabled = false;
+    composite_profile->collision_constraint_config.enabled = false;
+    composite_profile->smooth_velocities = true;
+    composite_profile->smooth_accelerations = false;
+    composite_profile->smooth_jerks = false;
+    composite_profile->velocity_coeff = Eigen::VectorXd::Ones(1);
+    planning_server.getProfiles()->addProfile<tesseract_planning::TrajOptCompositeProfile>("cartesian_program",
+                                                                                           composite_profile);
+
+    auto plan_profile = std::make_shared<tesseract_planning::TrajOptDefaultPlanProfile>();
+    plan_profile->cartesian_coeff = Eigen::VectorXd::Ones(6);
+    plan_profile->joint_coeff = Eigen::VectorXd::Ones(7);
+    planning_server.getProfiles()->addProfile<tesseract_planning::TrajOptPlanProfile>("RASTER", plan_profile);
+    planning_server.getProfiles()->addProfile<tesseract_planning::TrajOptPlanProfile>("freespace_profile",
+                                                                                      plan_profile);
+
+    request.name = tesseract_planning::process_planner_names::TRAJOPT_PLANNER_NAME;
+  }
   request.instructions = Instruction(program);
 
   // Print Diagnostics
   request.instructions.print("Program: ");
 
   // Solve process plan
+  plotter->waitForInput("Hit Enter to solve for trajectory.");
   ProcessPlanningFuture response = planning_server.run(request);
   planning_server.waitForAll();
 

@@ -42,7 +42,7 @@ namespace tesseract_ros_examples
 class BasicCartesianExample : public Example
 {
 public:
-  BasicCartesianExample(const ros::NodeHandle& nh, bool plotting, bool rviz);
+  BasicCartesianExample(const ros::NodeHandle& nh, bool plotting, bool rviz, bool ifopt, bool debug);
   ~BasicCartesianExample() override = default;
   BasicCartesianExample(const BasicCartesianExample&) = default;
   BasicCartesianExample& operator=(const BasicCartesianExample&) = default;
@@ -53,6 +53,8 @@ public:
 
 private:
   ros::NodeHandle nh_;
+  bool ifopt_;
+  bool debug_;
   tesseract_environment::Command::Ptr addPointCloud();
 };
 
